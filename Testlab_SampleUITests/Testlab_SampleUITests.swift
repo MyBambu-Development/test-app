@@ -32,21 +32,45 @@ final class Testlab_SampleUITests: XCTestCase {
         let incrementButton = app.buttons["incrementButton"]
         let resetButton = app.buttons["resetButton"]
         
-        //Checks that Count displays & is intilialized as zero
-        XCTAssertTrue(countLabel.exists)
-        XCTAssertEqual(countLabel.label, "Count: 0")
+        // ✅ Step 1: Check if user is already signed in
+        if countLabel.exists {
+            print("User is already signed in. Skipping login.")
+        } else {
+            print("User is not signed in. Performing login flow.")
+
+            let welcomeLogin = app.buttons["welcomeLogin"]
+            XCTAssertTrue(welcomeLogin.exists, "Login button does not exist")
+            welcomeLogin.tap()
+            
+            let emailField = app.textFields["emailLoginTextField"]
+            let passwordField = app.secureTextFields["passwordLoginTextField"]
+            let signInButton = app.buttons["signInButton"]
+            
+            XCTAssertTrue(emailField.exists, "Email field is missing")
+            emailField.tap()
+            emailField.typeText("chase11@fake.com")
+            
+            XCTAssertTrue(passwordField.exists, "Password field is missing")
+            passwordField.tap()
+            passwordField.typeText("Test@123")
+            
+            XCTAssertTrue(signInButton.exists, "Sign In button does not exist")
+            signInButton.tap()
+            
+            // ✅ Step 2: Wait for the home screen (countLabel) to appear
+            XCTAssertTrue(countLabel.waitForExistence(timeout: 5), "Count label did not appear")
+        }
         
-        //Checks that Increment button works as expected
+        // ✅ Step 3: Continue with counter test
+        XCTAssertEqual(countLabel.label, "Count: 0", "Initial count is incorrect")
+        
+        // Increment count
         incrementButton.tap()
+        XCTAssertEqual(countLabel.label, "Count: 1", "Increment did not work")
         
-        let newCount = app.staticTexts["countLabel"]
-        XCTAssertEqual(newCount.label, "Count: 1")
-        
-        //Checks Reset button works as expected
+        // Reset count
         resetButton.tap()
-        
-        let finalCount = app.staticTexts["countLabel"]
-        XCTAssertEqual(finalCount.label, "Count: 0")
+        XCTAssertEqual(countLabel.label, "Count: 0", "Reset did not work")
     }
 
     @MainActor

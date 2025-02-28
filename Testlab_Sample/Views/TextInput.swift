@@ -21,10 +21,11 @@ struct TextInput: View {
                 .fontWeight(.semibold)
                 .font(.footnote)
                 .accessibilityIdentifier(accessibilityLabel ?? "")
-            
+            //If secure field set text field to secure field
             if isSecureField {
                 SecureField(placeholder, text: $text)
                     .font(.system(size: 14))
+                    .accessibilityIdentifier(accessibilityLabel ?? "")
             } else {
                 TextField(placeholder, text: $text)
                     .font(.system(size: 14))

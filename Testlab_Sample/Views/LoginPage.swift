@@ -52,6 +52,7 @@ struct LoginPage: View {
                     .foregroundColor(.white)
                     .frame(width: UIScreen.main.bounds.width - 32, height: 48)
                 }
+                .accessibilityIdentifier("signInButton")
                 .background(Color(.systemBlue))
                 .disabled(!formIsVaild)
                 .opacity(formIsVaild ? 1.0 : 0.5)
