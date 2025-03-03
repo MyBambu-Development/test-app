@@ -25,7 +25,7 @@ class AuthViewModel: ObservableObject {
         self.userSession = Auth.auth().currentUser
         
         Task {
-            //Async to fethc user info
+            //Async to fetch user info to check user status (signed in or not)
             await fetchUser()
         }
     }
@@ -69,12 +69,27 @@ class AuthViewModel: ObservableObject {
     }
     
     
-    //Fetch's current user details
     func fetchUser() async {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-        guard let snapshot = try? await Firestore.firestore().collection("users").document(uid).getDocument() else { return }
-        self.currentUser = try? snapshot.data(as: User.self)
-        
+        //If user is not signed in function returns early
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("⚠️ No user is currently signed in.")
+            return
+        }
+
+        do {
+            //Fetchs user and saves them as a User model
+            let snapshot = try await Firestore.firestore().collection("users").document(uid).getDocument()
+            
+            if snapshot.exists {
+                self.currentUser = try snapshot.data(as: User.self)
+                print("Successfully fetched user: \(String(describing: currentUser))")
+            } else {
+                print("User does not exist in Firestore.")
+            }
+        } catch {
+            print("Error fetching user: \(error.localizedDescription)")
+        }
     }
+
     
 }
