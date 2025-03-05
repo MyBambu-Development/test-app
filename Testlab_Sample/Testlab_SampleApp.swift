@@ -22,7 +22,7 @@ struct YourApp: App {
   // register app delegate for Firebase setup
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject var viewModel = AuthViewModel()
-
+    @StateObject private var errorManager = GlobalErrorManager()
 
   var body: some Scene {
     WindowGroup {
@@ -30,6 +30,7 @@ struct YourApp: App {
         ContentView()
       }
       .environmentObject(viewModel)
+      .environmentObject(errorManager)
     }
   }
 }

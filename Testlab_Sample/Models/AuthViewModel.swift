@@ -19,6 +19,8 @@ protocol AuthenticationFormProtocol {
 class AuthViewModel: ObservableObject {
     @Published var userSession: FirebaseAuth.User?
     @Published var currentUser: User?
+    @Published var errorMessage: String?
+
     
     init() {
         //Sets user session to currently logged in user
@@ -44,18 +46,19 @@ class AuthViewModel: ObservableObject {
     }
     
     //Create new user function
-    func createUser(withEmail email: String, password: String, fullname: String) async throws {
-        do {
-            let result = try await Auth.auth().createUser(withEmail: email, password: password)
-            self.userSession = result.user
-            let user = User(id: result.user.uid, fullname: fullname, email: email)
-            let encodedUser = try Firestore.Encoder().encode(user)
-            try await Firestore.firestore().collection("users").document(user.id).setData(encodedUser)
-            await fetchUser()
-        } catch {
-            print("Debug: Failed to create user with error \(error.localizedDescription)")
+    func createUser(withEmail email: String, password: String, fullname: String, errorManager: GlobalErrorManager) async throws {
+            do {
+                let result = try await Auth.auth().createUser(withEmail: email, password: password)
+                self.userSession = result.user
+            } catch {
+                DispatchQueue.main.async {
+                    self.errorMessage = error.localizedDescription //Show inline error
+                    errorManager.showError(title: "Registration Error", message: error.localizedDescription) //Show alert
+                }
+                throw error
+            }
         }
-    }
+    
     
     //Sign out function
     func signOut() {
