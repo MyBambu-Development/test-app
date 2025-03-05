@@ -44,7 +44,9 @@ struct HomePage: View {
             .padding()
             //Sign out Button
             Button("Sign Out") {
-                viewModel.signOut()
+                Task{
+                   await viewModel.signOut()
+                }
             }
         }
         .padding()

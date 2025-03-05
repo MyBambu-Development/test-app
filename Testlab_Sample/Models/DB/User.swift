@@ -9,7 +9,9 @@ import Foundation
 
 struct User: Identifiable, Codable {
     //Where the user is defined
-    let id: String
-    let fullname: String
+    let id: UUID
+    let first_name: String
+    let last_name: String
     let email: String
+    let created_at: Date?
 }

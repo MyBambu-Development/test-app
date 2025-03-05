@@ -5,94 +5,78 @@
 //  Created by Chase Moffat on 2/27/25.
 //
 
-import Foundation
-import Firebase
-import FirebaseAuth
-import FirebaseFirestore
+import Supabase
+import SwiftUI
 
-//Protocol for form validation
 protocol AuthenticationFormProtocol {
     var formIsVaild: Bool { get }
 }
 
 @MainActor
 class AuthViewModel: ObservableObject {
-    @Published var userSession: FirebaseAuth.User?
-    @Published var currentUser: User?
+    @Published var isAuthenticated: Bool = false
     @Published var errorMessage: String?
 
-    
-    init() {
-        //Sets user session to currently logged in user
-        self.userSession = Auth.auth().currentUser
-        
-        Task {
-            //Async to fetch user info to check user status (signed in or not)
-            await fetchUser()
-        }
-    }
-    
+    let supabase = SupabaseManager.shared.supabase
 
-    
-    //Sign in function
-    func signIn(withEmail email: String, password: String) async throws {
+    // Create Account
+    func createUser(withEmail email: String, password: String, firstName: String, lastName: String) async {
         do {
-            let result = try await Auth.auth().signIn(withEmail: email, password: password)
-            self.userSession = result.user
-            await fetchUser()
-        } catch {
-            print("Debug: Failed to login with error \(error.localizedDescription)")
-        }
-    }
-    
-    //Create new user function
-    func createUser(withEmail email: String, password: String, fullname: String, errorManager: GlobalErrorManager) async throws {
-            do {
-                let result = try await Auth.auth().createUser(withEmail: email, password: password)
-                self.userSession = result.user
-            } catch {
-                DispatchQueue.main.async {
-                    self.errorMessage = error.localizedDescription //Show inline error
-                    errorManager.showError(title: "Registration Error", message: error.localizedDescription) //Show alert
-                }
-                throw error
-            }
-        }
-    
-    
-    //Sign out function
-    func signOut() {
-        do {
-            try Auth.auth().signOut()
-            self.userSession = nil
-            self.currentUser = nil
-        } catch {
-            print("Debug: Failed to sign out with error \(error.localizedDescription)")
-        }
-    }
-    
-    
-    func fetchUser() async {
-        //If user is not signed in function returns early
-        guard let uid = Auth.auth().currentUser?.uid else {
-            print("⚠️ No user is currently signed in.")
-            return
-        }
+            // Register User in Supabase Auth
+            let authResponse = try await supabase.auth.signUp(email: email, password: password)
+            let authUser = authResponse.user // Extract Authenticated User
 
-        do {
-            //Fetchs user and saves them as a User model
-            let snapshot = try await Firestore.firestore().collection("users").document(uid).getDocument()
+            // Create a User Model
+            let newUser = User(
+                id: authUser.id,
+                first_name: firstName,
+                last_name: lastName,
+                email: authUser.email ?? email,
+                created_at: Date()
+            )
+
+            // Insert User Data into Supabase Database
+            try await supabase
+                .from("users")
+                .insert(newUser)
+                .execute()
             
-            if snapshot.exists {
-                self.currentUser = try snapshot.data(as: User.self)
-                print("Successfully fetched user: \(String(describing: currentUser))")
-            } else {
-                print("User does not exist in Firestore.")
+            isAuthenticated = true
+            print("✅ User successfully created and added to Supabase")
+            
+            do {
+                let response = try await PrizePoolServiceModel.postUserUpdate(for: email)
+                print("✅ User successfully added to Prizepool: \(response)")
+            } catch {
+                print("❌ Error adding user to Prizepool: \(error.localizedDescription)")
             }
+
         } catch {
-            print("Error fetching user: \(error.localizedDescription)")
+            self.errorMessage = error.localizedDescription
+            print("❌ Error signing up: \(error.localizedDescription)")
         }
     }
 
-    
+    // Sign In
+    func signIn(withEmail email: String, password: String) async {
+        do {
+            let authResponse = try await supabase.auth.signIn(email: email, password: password)
+            isAuthenticated = true
+            print("✅ User signed in: \(authResponse.user.id)")
+        } catch {
+            self.errorMessage = error.localizedDescription
+            print("❌ Error signing in: \(error.localizedDescription)")
+        }
+    }
+
+    // Sign Out
+    func signOut() async {
+        do {
+            try await supabase.auth.signOut()
+            isAuthenticated = false
+            print("✅ User signed out")
+        } catch {
+            print("❌ Error signing out: \(error.localizedDescription)")
+        }
+    }
 }

@@ -7,19 +7,21 @@
 
 import SwiftUI
 
+import SwiftUI
+
 struct ContentView: View {
     @EnvironmentObject var viewModel: AuthViewModel
+
     var body: some View {
         Group {
-            //If User is logged in show home page
-            if viewModel.userSession != nil {
-                HomePage()
+            if viewModel.isAuthenticated {
+                HomePage() // Redirect to HomePage after login
             } else {
-                //Else show welcome page
-                WelcomePage()
+                WelcomePage() // Show WelcomePage if not logged in
             }
         }
     }
 }
+
 
 

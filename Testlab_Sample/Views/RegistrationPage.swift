@@ -9,7 +9,8 @@ import SwiftUI
 
 struct RegistrationPage: View {
     @State private var email = ""
-    @State private var fullname = ""
+    @State private var firstName = ""
+    @State private var lastName = ""
     @State private var password = ""
     @State private var confirmPassword = ""
 
@@ -32,20 +33,26 @@ struct RegistrationPage: View {
                           placeholder: "name@example.com",
                           accessibilityLabel: "emailRegistration")
                 .autocapitalization(.none)
-
+                
                 // Full Name Input
-                TextInput(text: $fullname,
-                          title: "Full Name",
-                          placeholder: "Enter your name",
-                          accessibilityLabel: "fullNameRegistration")
-
+                TextInput(text: $firstName,
+                          title: "First Name",
+                          placeholder: "Enter your first name",
+                          accessibilityLabel: "firstNameRegistration")
+                
+                // Last Name Input
+                TextInput(text: $lastName,
+                          title: "Last Name",
+                          placeholder: "Enter your last name",
+                          accessibilityLabel: "lastNameRegistration")
+                
                 // Password Input
                 TextInput(text: $password,
                           title: "Password",
                           placeholder: "Enter your password",
                           accessibilityLabel: "passwordRegistration",
                           isSecureField: true)
-
+                
                 // Confirm Password Input with Fix
                 ZStack(alignment: .trailing) {
                     TextInput(text: $confirmPassword,
@@ -53,7 +60,7 @@ struct RegistrationPage: View {
                               placeholder: "Confirm your password",
                               accessibilityLabel: "confirmPasswordRegistration",
                               isSecureField: true)
-
+                    
                     if !password.isEmpty && !confirmPassword.isEmpty {
                         Image(systemName: password == confirmPassword ? "checkmark.circle.fill" : "xmark.circle.fill")
                             .imageScale(.large)
@@ -65,7 +72,7 @@ struct RegistrationPage: View {
             }
             .padding(.horizontal)
             .padding(.top, 12)
-
+            
             // ✅ Display Error Messages Below Input Fields
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
@@ -73,7 +80,7 @@ struct RegistrationPage: View {
                     .font(.caption)
                     .padding(.top, 4)
             }
-
+            
             // SIGN UP BUTTON
             Button {
                 Task {
@@ -81,9 +88,10 @@ struct RegistrationPage: View {
                         try await viewModel.createUser(
                             withEmail: email,
                             password: password,
-                            fullname: fullname,
-                            errorManager: errorManager // ✅ Pass Error Manager Here
+                            firstName: firstName,
+                            lastName: lastName
                         )
+                        dismiss()
                     } catch {
                         errorManager.showError(title: "Registration Failed", message: error.localizedDescription)
                     }
@@ -102,7 +110,7 @@ struct RegistrationPage: View {
             .opacity(formIsValid ? 1.0 : 0.5)
             .cornerRadius(10)
             .padding(.top, 24)
-
+            
             Spacer()
             
             // LOGIN NAVIGATION
@@ -118,17 +126,8 @@ struct RegistrationPage: View {
                 .font(.system(size: 14))
             }
         }
-        // Show Alert for Errors
-        .alert(item: $errorManager.currentError) { error in
-            Alert(
-                title: Text(error.title),
-                message: Text(error.message),
-                dismissButton: .default(Text("OK")) {
-                    errorManager.dismissError()
-                }
-            )
-        }
     }
+    
     //Form validation logic
     var formIsValid: Bool {
         return !email.isEmpty
@@ -136,7 +135,8 @@ struct RegistrationPage: View {
             && !password.isEmpty
             && password.count > 5
             && confirmPassword == password
-            && !fullname.isEmpty
+            && !firstName.isEmpty
+            && !lastName.isEmpty
     }
 }
 
