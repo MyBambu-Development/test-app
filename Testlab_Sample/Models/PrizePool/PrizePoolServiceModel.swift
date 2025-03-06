@@ -8,9 +8,9 @@
 import Foundation
 
 struct PrizePoolServiceModel {
-    static let baseURL = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://mybambu-staging.communityincentives.io"
+    static let baseURL = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "testurl"
     
-    static func postUserUpdate(for username: String) async throws -> String {
+    static func createPrizePoolUser(for username: String) async throws -> String {
         // Set the URL
         guard let url = URL(string: "\(baseURL)/users") else {
             throw URLError(.badURL)
@@ -38,11 +38,12 @@ struct PrizePoolServiceModel {
         let responseString = String(data: data, encoding: .utf8) ?? "No response data"
         print("PrizePool API Response: \(responseString)")
 
-        //Ensure HTTP 200 OK Response
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+        //Ensure HTTP 201 Response
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 201 else {
             throw URLError(.badServerResponse)
         }
 
         return responseString
     }
+    
 }

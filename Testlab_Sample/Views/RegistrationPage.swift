@@ -73,7 +73,7 @@ struct RegistrationPage: View {
             .padding(.horizontal)
             .padding(.top, 12)
             
-            // ✅ Display Error Messages Below Input Fields
+            // Display Error Messages Below Input Fields
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .foregroundColor(.red)

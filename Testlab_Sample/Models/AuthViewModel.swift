@@ -20,7 +20,7 @@ class AuthViewModel: ObservableObject {
     let supabase = SupabaseManager.shared.supabase
 
     // Create Account
-    func createUser(withEmail email: String, password: String, firstName: String, lastName: String) async {
+    func createUser(withEmail email: String, password: String, firstName: String, lastName: String) async throws {
         do {
             // Register User in Supabase Auth
             let authResponse = try await supabase.auth.signUp(email: email, password: password)
@@ -40,29 +40,59 @@ class AuthViewModel: ObservableObject {
                 .from("users")
                 .insert(newUser)
                 .execute()
-            
+            //Sets autheticated to true and logs user in
             isAuthenticated = true
             print("✅ User successfully created and added to Supabase")
             
-            do {
-                let response = try await PrizePoolServiceModel.postUserUpdate(for: email)
-                print("✅ User successfully added to Prizepool: \(response)")
-            } catch {
-                print("❌ Error adding user to Prizepool: \(error.localizedDescription)")
+            Task {
+                await registerUserInPrizePool(email: email, userID: authUser.id.uuidString)
             }
-
         } catch {
             self.errorMessage = error.localizedDescription
             print("❌ Error signing up: \(error.localizedDescription)")
         }
     }
+    
+    //Register the user for Prizepool
+    func registerUserInPrizePool(email: String, userID: String) async {
+        do {
+            // Call PrizePool API to create a user
+            let responseString = try await PrizePoolServiceModel.createPrizePoolUser(for: email)
+            
+            // Convert response string to Data
+            guard let data = responseString.data(using: .utf8) else {
+                print("❌ Error: Could not convert responseString to Data")
+                return
+            }
+
+            // Decode API Response
+            let prizePoolUser = try JSONDecoder().decode(PrizePoolUser.self, from: data)
+            print("PrizePool API Response Decoded: \(prizePoolUser)")
+
+            // Insert into `prizepool` table
+            try await supabase
+                .from("prizepool")
+                .insert([
+                    "user_id": userID,
+                    "prizepool_user_id": prizePoolUser.user_id
+                ])
+                .execute()
+
+            print("✅ PrizePool user successfully added to Supabase: \(prizePoolUser.user_id)")
+
+        } catch {
+            print("❌ Error registering user in PrizePool: \(error.localizedDescription)")
+        }
+    }
+
 
     // Sign In
-    func signIn(withEmail email: String, password: String) async {
+    func signIn(withEmail email: String, password: String) async throws{
         do {
             let authResponse = try await supabase.auth.signIn(email: email, password: password)
             isAuthenticated = true
             print("✅ User signed in: \(authResponse.user.id)")
+            
         } catch {
             self.errorMessage = error.localizedDescription
             print("❌ Error signing in: \(error.localizedDescription)")

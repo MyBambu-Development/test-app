@@ -20,7 +20,7 @@ struct HomePage: View {
                 .imageScale(.large)
                 .foregroundStyle(.tint)
             //Code for text
-            Text("Hello, world!")
+            Text("Hello World")
                 .padding()
             
             Text("Count: \(count)")
