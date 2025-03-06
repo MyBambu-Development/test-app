@@ -46,4 +46,37 @@ struct PrizePoolServiceModel {
         return responseString
     }
     
+    //Gets the game url for Users
+    static func playGame(for prizePoolUserID: String) async throws -> String {
+        // Set the URL
+        guard let url = URL(string: "\(baseURL)/users/\(prizePoolUserID)/games/play") else {
+               throw URLError(.badURL)
+           }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        // Fetch API Key from Environment
+        let apiKey = ProcessInfo.processInfo.environment["API_KEY"] ?? "default-key"
+        
+        // Add Headers
+        request.setValue("mybambu", forHTTPHeaderField: "X-Organization-ID")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Perform API Call
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        //Ensure HTTP 200 Response
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        
+        
+        let gameResponse = try JSONDecoder().decode(GameUrlResponse.self, from: data)
+        print("Game URL response: \(gameResponse)")
+        
+        return gameResponse.url
+    }
+    
 }

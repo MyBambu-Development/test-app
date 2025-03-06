@@ -11,7 +11,6 @@ import SwiftUI
 struct YourApp: App {
 
     @StateObject var viewModel = AuthViewModel()
-    @StateObject private var errorManager = GlobalErrorManager()
 
   var body: some Scene {
     WindowGroup {
@@ -19,7 +18,6 @@ struct YourApp: App {
         ContentView()
       }
       .environmentObject(viewModel)
-      .environmentObject(errorManager)
     }
   }
 }

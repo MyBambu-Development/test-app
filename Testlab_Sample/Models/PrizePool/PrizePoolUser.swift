@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct PrizePoolUser: Codable {
+struct PrizePoolUserResponse: Codable {
     let status: String
     let user_id: String
     let date_created: String

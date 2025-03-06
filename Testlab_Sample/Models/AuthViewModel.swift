@@ -15,17 +15,19 @@ protocol AuthenticationFormProtocol {
 @MainActor
 class AuthViewModel: ObservableObject {
     @Published var isAuthenticated: Bool = false
-    @Published var errorMessage: String?
-
+    
     let supabase = SupabaseManager.shared.supabase
-
+    
+    
+    
+    
     // Create Account
     func createUser(withEmail email: String, password: String, firstName: String, lastName: String) async throws {
         do {
             // Register User in Supabase Auth
             let authResponse = try await supabase.auth.signUp(email: email, password: password)
             let authUser = authResponse.user // Extract Authenticated User
-
+            
             // Create a User Model
             let newUser = User(
                 id: authUser.id,
@@ -34,7 +36,7 @@ class AuthViewModel: ObservableObject {
                 email: authUser.email ?? email,
                 created_at: Date()
             )
-
+            
             // Insert User Data into Supabase Database
             try await supabase
                 .from("users")
@@ -48,7 +50,6 @@ class AuthViewModel: ObservableObject {
                 await registerUserInPrizePool(email: email, userID: authUser.id.uuidString)
             }
         } catch {
-            self.errorMessage = error.localizedDescription
             print("❌ Error signing up: \(error.localizedDescription)")
         }
     }
@@ -64,11 +65,11 @@ class AuthViewModel: ObservableObject {
                 print("❌ Error: Could not convert responseString to Data")
                 return
             }
-
+            
             // Decode API Response
-            let prizePoolUser = try JSONDecoder().decode(PrizePoolUser.self, from: data)
+            let prizePoolUser = try JSONDecoder().decode(PrizePoolUserResponse.self, from: data)
             print("PrizePool API Response Decoded: \(prizePoolUser)")
-
+            
             // Insert into `prizepool` table
             try await supabase
                 .from("prizepool")
@@ -77,15 +78,15 @@ class AuthViewModel: ObservableObject {
                     "prizepool_user_id": prizePoolUser.user_id
                 ])
                 .execute()
-
+            
             print("✅ PrizePool user successfully added to Supabase: \(prizePoolUser.user_id)")
-
+            
         } catch {
             print("❌ Error registering user in PrizePool: \(error.localizedDescription)")
         }
     }
-
-
+    
+    
     // Sign In
     func signIn(withEmail email: String, password: String) async throws{
         do {
@@ -94,11 +95,10 @@ class AuthViewModel: ObservableObject {
             print("✅ User signed in: \(authResponse.user.id)")
             
         } catch {
-            self.errorMessage = error.localizedDescription
             print("❌ Error signing in: \(error.localizedDescription)")
         }
     }
-
+    
     // Sign Out
     func signOut() async {
         do {
@@ -107,6 +107,16 @@ class AuthViewModel: ObservableObject {
             print("✅ User signed out")
         } catch {
             print("❌ Error signing out: \(error.localizedDescription)")
+        }
+    }
+    
+    func getCurrentUserID() async -> String? {
+        do {
+            let user = try await supabase.auth.user()
+            return user.id.uuidString
+        } catch {
+            print("❌ Error fetching current user ID: \(error.localizedDescription)")
+            return nil
         }
     }
 }

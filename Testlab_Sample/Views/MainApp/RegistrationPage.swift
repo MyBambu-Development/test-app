@@ -16,7 +16,6 @@ struct RegistrationPage: View {
 
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: AuthViewModel
-    @EnvironmentObject var errorManager: GlobalErrorManager
 
     var body: some View {
         VStack {
@@ -73,13 +72,6 @@ struct RegistrationPage: View {
             .padding(.horizontal)
             .padding(.top, 12)
             
-            // Display Error Messages Below Input Fields
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .foregroundColor(.red)
-                    .font(.caption)
-                    .padding(.top, 4)
-            }
             
             // SIGN UP BUTTON
             Button {
@@ -93,7 +85,7 @@ struct RegistrationPage: View {
                         )
                         dismiss()
                     } catch {
-                        errorManager.showError(title: "Registration Failed", message: error.localizedDescription)
+                        print(error.localizedDescription)
                     }
                 }
             } label: {

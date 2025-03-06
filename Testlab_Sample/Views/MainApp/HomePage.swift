@@ -19,9 +19,13 @@ struct HomePage: View {
             Image("bambu_logo")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            //Code for text
-            Text("Hello World")
+    
+            //Link to PrizePool
+            NavigationLink("Spin the Wheel!", destination: GamePage())
                 .padding()
+                .foregroundColor(.white)
+                .background(Color.blue)
+                .cornerRadius(10)
             
             Text("Count: \(count)")
                 .padding()

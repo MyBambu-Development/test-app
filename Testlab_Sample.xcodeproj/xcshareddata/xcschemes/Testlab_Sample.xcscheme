@@ -95,6 +95,11 @@
             value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3Z3RjYWFpeWlweHlwdXlxdWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDExOTAyODUsImV4cCI6MjA1Njc2NjI4NX0.40BXeebzBuoaERnh5lzS0ns1JbmaLYyOECVnO7jhQJA"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = ""
+            value = ""
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
