@@ -21,6 +21,7 @@ struct GamePage: View {
             } else if isLoading {
                 ProgressView("Loading Game...") //Show loading indicator
             } else {
+                //If game fails to load show error
                 Text(errorMessage ?? "Failed to load game.")
                     .foregroundColor(.red)
                     .padding()
@@ -35,6 +36,7 @@ struct GamePage: View {
 
     //Fetch PrizePool User ID & Call API for Game URL
     private func fetchGameURL() async {
+        //Gets UUID from current loged in user
         do {
             guard let userID = await viewModel.getCurrentUserID() else {
                 errorMessage = "User not authenticated."
@@ -50,9 +52,9 @@ struct GamePage: View {
                 .execute()
 
 
-
+            //Decodes json response from DB
             let decodedResponse = try JSONDecoder().decode([PrizePoolUserID].self, from: response.data)
-
+            //Extracts prizepool_user_id
             guard let prizepoolUserID = decodedResponse.first?.prizepool_user_id else {
                 errorMessage = "No PrizePool user ID found."
                 isLoading = false
@@ -64,6 +66,7 @@ struct GamePage: View {
 
             // Convert String to URL
             if let url = URL(string: gameURLString) {
+                //set gameURL to prizepool URL
                 DispatchQueue.main.async {
                     self.gameURL = url
                     self.isLoading = false

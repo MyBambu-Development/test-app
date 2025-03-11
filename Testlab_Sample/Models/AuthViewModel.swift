@@ -18,9 +18,6 @@ class AuthViewModel: ObservableObject {
     
     let supabase = SupabaseManager.shared.supabase
     
-    
-    
-    
     // Create Account
     func createUser(withEmail email: String, password: String, firstName: String, lastName: String) async throws {
         do {
@@ -45,10 +42,11 @@ class AuthViewModel: ObservableObject {
             //Sets autheticated to true and logs user in
             isAuthenticated = true
             print("✅ User successfully created and added to Supabase")
-            
+            //Creates new prizepool user
             Task {
                 await registerUserInPrizePool(email: email, userID: authUser.id.uuidString)
             }
+            
         } catch {
             print("❌ Error signing up: \(error.localizedDescription)")
         }
@@ -109,7 +107,7 @@ class AuthViewModel: ObservableObject {
             print("❌ Error signing out: \(error.localizedDescription)")
         }
     }
-    
+    // Retrives the UUID for current signed in user
     func getCurrentUserID() async -> String? {
         do {
             let user = try await supabase.auth.user()
